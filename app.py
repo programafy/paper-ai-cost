@@ -104,6 +104,12 @@ RECEIPT_CSS = """
         margin-top: 10px;
         font-size: 14px;
     }
+
+    /* Hide Streamlit elements */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stAppDeployButton {display:none;}
 """
 
 def generate_pdf_receipt(usage, model, cost_usd, cost_idr, analogy, timestamp):
