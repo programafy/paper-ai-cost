@@ -105,11 +105,23 @@ RECEIPT_CSS = """
         font-size: 14px;
     }
 
-    /* Hide Streamlit elements */
+    /* Aggressively hide all Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     .stAppDeployButton {display:none;}
+    div[data-testid="stStatusWidget"] {display:none;}
+    div[data-testid="stHeader"] {display:none;}
+    div[data-testid="stToolbar"] {display:none;}
+    div[data-testid="stDecoration"] {display:none;}
+    #stDecoration {display:none;}
+    .css-1rs6os {display:none;}
+    .css-1v8v4p6 {display:none;}
+    .st-emotion-cache-18ni7ap {display: none !important;}
+    .st-emotion-cache-6qob1r {display: none !important;}
+    .st-emotion-cache-z5fcl4 {display: none !important;}
+    .st-emotion-cache-1vq4p4l {display: none !important;}
+    .st-emotion-cache-12fmjuu {display: none !important;}
 """
 
 def generate_pdf_receipt(usage, model, cost_usd, cost_idr, analogy, timestamp):
