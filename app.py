@@ -47,17 +47,23 @@ def calculate_cost(input_tokens, output_tokens, model, kurs_rate):
 
 def get_analogy(idr_val):
     if idr_val < 50:
-        return "Setara dengan sebutir debu (Hampir gratis!)"
+        return "Setara dengan sebutir debu di server (Hampir gratis!)"
     elif idr_val < 500:
-        return "Setara dengan satu butir permen 🍬"
+        return "Setara dengan harga satu butir permen karet yang udah keras 🍬"
     elif idr_val < 2500:
-        return f"Setara dengan {round(idr_val/1000, 1)} potong gorengan bakwan 🥟"
-    elif idr_val < 10000:
-        return "Setara dengan segelas es teh manis 🍹"
-    elif idr_val < 25000:
-        return "Setara dengan satu porsi bubur ayam 🥣"
+        return f"Setara dengan biaya kencing di WC Umum Terminal (Tanpa sabun) 🚽"
+    elif idr_val < 5000:
+        return "Setara dengan bayar parkir motor tapi ga dikasih karcis 🛵"
+    elif idr_val < 15000:
+        return "Setara dengan satu porsi seblak level 0 (Cuma kerupuk doang) 🥣"
+    elif idr_val < 30000:
+        return "Setara dengan harga kuota 1GB yang masa aktifnya tinggal 2 jam 📶"
+    elif idr_val < 50000:
+        return "Setara dengan patungan beli kado buat temen yang ga deket-deket banget 🎁"
+    elif idr_val < 100000:
+        return "Setara dengan biaya admin ganti kartu ATM yang ketelen 💳"
     else:
-        return "Setara dengan segelas kopi Janji Jiwa ☕"
+        return "Setara dengan harga top-up diamond ML demi skin trial 💎"
 
 # Constant for Receipt CSS
 RECEIPT_CSS = """
@@ -236,6 +242,7 @@ with st.sidebar:
         "meta-llama/llama-4-scout-17b-16e-instruct",
         "meta-llama/llama-prompt-guard-2-22m",
         "meta-llama/llama-prompt-guard-2-86m",
+        "deepseek/deepseek-r1",
         "openai/gpt-oss-120b",
         "openai/gpt-oss-20b",
         "openai/gpt-oss-safeguard-20b",
