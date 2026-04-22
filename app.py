@@ -222,9 +222,26 @@ st.markdown(f"<style>{RECEIPT_CSS}</style>", unsafe_allow_html=True)
 # Initialize Session State
 if "messages" not in st.session_state:
     st.session_state.messages = load_history()
+if "context_summary" not in st.session_state:
+    st.session_state.context_summary = ""
 
 # API Key check from Environment only
 api_key_env = os.getenv("GROQ_API_KEY", "")
+
+# --- SUMMARY LOGIC ---
+def summarize_history(messages, client, model):
+    if len(messages) < 4: return ""
+    prompt = "Summarize the conversation so far in one short paragraph. Focus on key points."
+    history_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "system", "content": prompt}, {"role": "user", "content": history_text}],
+            max_tokens=150
+        )
+        return response.choices[0].message.content
+    except:
+        return ""
 
 # Sidebar for Config & Actions
 with st.sidebar:
@@ -232,6 +249,8 @@ with st.sidebar:
     
     if not api_key_env:
         st.error("❌ GROQ_API_KEY tidak ditemukan di file .env!")
+    else:
+        st.success("✅ API Connected")
     
     model_options = [
         "allam-2-7b",
@@ -253,6 +272,15 @@ with st.sidebar:
     default_index = model_options.index("openai/gpt-oss-120b")
     model_name = st.selectbox("Model AI", model_options, index=default_index)
     kurs = st.number_input("Kurs USD -> IDR", value=16000)
+
+    st.divider()
+    st.subheader("🧠 Memory Management")
+    memory_limit = st.slider("Context Window (Messages)", 2, 20, 10, help="Jumlah pesan terakhir yang dikirim utuh ke AI. Sisanya akan dirangkum.")
+    if st.button("🪄 Paksa Rangkum Histori"):
+        with st.status("Merangkum..."):
+            client = Groq(api_key=api_key_env)
+            st.session_state.context_summary = summarize_history(st.session_state.messages, client, model_name)
+            st.success("Histori berhasil dirangkum!")
     
     st.divider()
     st.subheader("📊 Statistik & Akumulasi")
@@ -360,27 +388,47 @@ if prompt := st.chat_input("Apa yang ingin kamu tanyakan?"):
 
     try:
         client = Groq(api_key=api_key_env)
+        
+        # Prepare context
+        # 1. Start with the summary if it exists
+        final_messages = []
+        if st.session_state.context_summary:
+            final_messages.append({"role": "system", "content": f"Previous conversation summary: {st.session_state.context_summary}"})
+        
+        # 2. Add only the last N messages based on memory_limit
+        recent_messages = st.session_state.messages[-(memory_limit):]
+        for m in recent_messages:
+            final_messages.append({"role": m["role"], "content": m["content"]})
+
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             completion = client.chat.completions.create(
                 model=model_name,
-                messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
+                messages=final_messages,
                 stream=False,
             )
             full_response = completion.choices[0].message.content
             usage = completion.usage
             message_placeholder.markdown(full_response)
             
+            # Auto-Summarization check: if total messages > memory_limit + 2, trigger auto-summary
+            if len(st.session_state.messages) > memory_limit + 2:
+                st.session_state.context_summary = summarize_history(st.session_state.messages, client, model_name)
+
             cost_usd, cost_idr = calculate_cost(usage.prompt_tokens, usage.completion_tokens, model_name, kurs)
             analogy = get_analogy(cost_idr)
             
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Additional line in receipt if summary was used
+            summary_note = " (Inc. Summary Context)" if st.session_state.context_summary else ""
+            
             receipt_html = f"""
             <div class="receipt">
                 <div class="receipt-header">
                     <div class="receipt-title">STRUK AI</div>
                     <div>{timestamp}</div>
-                    <div>Model: {model_name}</div>
+                    <div>Model: {model_name}{summary_note}</div>
                 </div>
                 <div class="receipt-item">
                     <span>Input Tokens ({usage.prompt_tokens})</span>
